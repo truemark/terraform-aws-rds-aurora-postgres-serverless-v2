@@ -24,7 +24,7 @@ resource "aws_rds_cluster" "cluster" {
   master_password                  = random_password.db.result
   db_cluster_parameter_group_name  = aws_rds_cluster_parameter_group.cluster.name
   db_instance_parameter_group_name = aws_db_parameter_group.db.name
-  performance_insights_enabled     = var.performance_insights_enabled
+#   performance_insights_enabled     = var.performance_insights_enabled
   db_subnet_group_name             = aws_db_subnet_group.cluster.name
   vpc_security_group_ids           = []
   serverlessv2_scaling_configuration {
