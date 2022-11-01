@@ -1,7 +1,3 @@
-locals {
-  master_username = "root"
-}
-
 data "aws_kms_key" "db" {
   key_id = var.kms_key_alias
 }
@@ -20,33 +16,31 @@ resource "aws_rds_cluster" "cluster" {
   kms_key_id                       = data.aws_kms_key.db.arn
   storage_encrypted                = true
   tags                             = var.tags
-  master_username                  = local.master_username
+  master_username                  = var.master_username
   master_password                  = random_password.db.result
   db_cluster_parameter_group_name  = aws_rds_cluster_parameter_group.cluster.name
   db_instance_parameter_group_name = aws_db_parameter_group.db.name
-#   performance_insights_enabled     = var.performance_insights_enabled
   db_subnet_group_name             = aws_db_subnet_group.cluster.name
-  vpc_security_group_ids           = []
+  vpc_security_group_ids           = [ aws_security_group.db.id ]
   serverlessv2_scaling_configuration {
     max_capacity = var.max_capacity
     min_capacity = var.min_capacity
   }
 }
 
-resource "aws_rds_cluster_instance" "serverless" {
-  count                        = var.reader_instance_count
-  cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
-  identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
-  instance_class               = "db.serverless"
-  engine                       = aws_rds_cluster.cluster.engine
-  engine_version               = aws_rds_cluster.cluster.engine_version
-  db_subnet_group_name         = aws_db_subnet_group.cluster.name
-  db_parameter_group_name      = aws_db_parameter_group.db.name
-  performance_insights_enabled = var.performance_insights_enabled
-  promotion_tier               = 2
+resource "aws_rds_cluster_instance" "reader" {
+  count                   = var.reader_instance_count
+  cluster_identifier      = aws_rds_cluster.cluster.cluster_identifier
+  identifier_prefix       = "${aws_rds_cluster.cluster.cluster_identifier}-"
+  instance_class          = "db.serverless"
+  engine                  = aws_rds_cluster.cluster.engine
+  engine_version          = aws_rds_cluster.cluster.engine_version
+  db_subnet_group_name    = aws_db_subnet_group.cluster.name
+  db_parameter_group_name = aws_db_parameter_group.db.name
+  promotion_tier          = 2
 }
 
-resource "aws_rds_cluster_instance" "provisioned" {
+resource "aws_rds_cluster_instance" "writer" {
   count                        = var.writer_instance_count
   cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
   identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
@@ -129,7 +123,6 @@ resource "aws_security_group" "db" {
     cidr_blocks = var.ingress_cidr_blocks
   }
 
-  # TODO Lock this down later
   ingress {
     from_port   = 0
     to_port     = 0

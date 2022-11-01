@@ -18,13 +18,6 @@ variable "db_parameter_group_tags" {
   default     = {}
 }
 
-
-# variable "performance_insights_enabled" {
-#   description = "Whether or not to enable performance insights for this db."
-#   type        = bool
-#   default     = false
-# }
-
 variable "egress_cidr_blocks" {
   description = "A list of CIDR blocks which are allowed to access the database"
   type        = list(string)
@@ -45,6 +38,12 @@ variable "ingress_cidr_blocks" {
 variable "kms_key_alias" {
   description = "The alias of the KMS encryption key. When specifying kms_key_id, storage_encrypted needs to be set to true."
   type        = string
+}
+
+variable "master_username" {
+  description = "The name of the master account for the db. Defaults to root."
+  type        = string
+  default     = "root"
 }
 
 variable "max_capacity" {
@@ -128,6 +127,12 @@ variable "tags" {
 variable "vpc_id" {
   description = "The ID of the VPC to provision into"
   type        = string
+}
+
+variable "writer_instance_class" {
+  description = "The instance class of the writer(s). All will be provisioned with the same class."
+  type        = string
+  default     = "db.t3.medium"
 }
 
 variable "writer_instance_count" {
