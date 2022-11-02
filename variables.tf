@@ -1,3 +1,9 @@
+variable "cluster_engine_mode" {
+  description = "The engine mode config for the cluster: either provisioned or serverless."
+  type        = string
+  default     = "provisioned"
+}
+
 variable "cluster_identifier" {
   description = "The cluster identifier for the cluster to be created."
   type        = string
@@ -16,6 +22,12 @@ variable "db_instance_parameters" {
 variable "db_parameter_group_tags" {
   description = "A map of tags to add to the db_parameter_group resource."
   default     = {}
+}
+
+variable "deletion_protection" {
+  description = "Toggle to enable deletion protection. The db cannot be deleted when this value is set to true."
+  type        = bool
+  default     = false
 }
 
 variable "egress_cidr_blocks" {
@@ -75,7 +87,7 @@ variable "port" {
 }
 
 variable "postgres_engine_version" {
-  description = "The number of writer instances to create."
+  description = "The version of the postgres cluster engine to create."
   type        = string
   default     = "13.6"
 }
@@ -107,14 +119,31 @@ variable "rds_cluster_parameters" {
   default = []
 }
 
+variable "reader_engine_mode" {
+  description = "The engine mode config for the readers: either provisioned or db.serverless."
+  type        = string
+  default     = "db.serverless"
+}
+
+variable "reader_instance_class" {
+  description = "Instance class of a provisioned cluster reader. This parameter is required if reader_engine_mode is set to provisioned."
+  type        = string
+}
+
 variable "reader_instance_count" {
   description = "The number of reader instances to create."
   type        = number
-  default     = 1
+  default     = 0
+}
+
+variable "security_group_ids" {
+  description = "List of security group IDs to apply to the cluster instances."
+  type        = list(string)
+  default     = []
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs to use"
+  description = "List of subnet IDs to use."
   type        = list(string)
 }
 
@@ -125,14 +154,13 @@ variable "tags" {
 }
 
 variable "vpc_id" {
-  description = "The ID of the VPC to provision into"
+  description = "The ID of the VPC to provision into."
   type        = string
 }
 
 variable "writer_instance_class" {
-  description = "The instance class of the writer(s). All will be provisioned with the same class."
+  description = "Instance class of a provisioned cluster writer. This parameter is required if cluster_engine_mode is set to provisioned."
   type        = string
-  default     = "db.t3.medium"
 }
 
 variable "writer_instance_count" {

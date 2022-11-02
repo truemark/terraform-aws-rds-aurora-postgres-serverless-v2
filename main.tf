@@ -11,8 +11,9 @@ resource "aws_rds_cluster" "cluster" {
   skip_final_snapshot              = true
   cluster_identifier               = var.cluster_identifier
   engine                           = data.aws_rds_engine_version.postgresql.engine
-  engine_mode                      = "provisioned"
+  engine_mode                      = var.cluster_engine_mode
   database_name                    = var.cluster_identifier
+  deletion_protection              = var.deletion_protection
   kms_key_id                       = data.aws_kms_key.db.arn
   storage_encrypted                = true
   tags                             = var.tags
@@ -21,36 +22,42 @@ resource "aws_rds_cluster" "cluster" {
   db_cluster_parameter_group_name  = aws_rds_cluster_parameter_group.cluster.name
   db_instance_parameter_group_name = aws_db_parameter_group.db.name
   db_subnet_group_name             = aws_db_subnet_group.cluster.name
-  vpc_security_group_ids           = [ aws_security_group.db.id ]
+  vpc_security_group_ids           = concat([aws_security_group.db.id], var.security_group_ids)
   serverlessv2_scaling_configuration {
     max_capacity = var.max_capacity
     min_capacity = var.min_capacity
   }
 }
 
-resource "aws_rds_cluster_instance" "reader" {
-  count                   = var.reader_instance_count
-  cluster_identifier      = aws_rds_cluster.cluster.cluster_identifier
-  identifier_prefix       = "${aws_rds_cluster.cluster.cluster_identifier}-"
-  instance_class          = "db.serverless"
-  engine                  = aws_rds_cluster.cluster.engine
-  engine_version          = aws_rds_cluster.cluster.engine_version
-  db_subnet_group_name    = aws_db_subnet_group.cluster.name
-  db_parameter_group_name = aws_db_parameter_group.db.name
-  promotion_tier          = 2
-}
-
 resource "aws_rds_cluster_instance" "writer" {
-  count                        = var.writer_instance_count
+  count = var.writer_instance_count
+
+  # Setting promotion tier to 0 makes the instance eligible to become a writer.
+  promotion_tier               = 0
   cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
   identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
-  instance_class               = "db.t3.medium"
+  instance_class               = var.cluster_engine_mode == "provisioned" ? var.writer_instance_class : var.cluster_engine_mode
   engine                       = aws_rds_cluster.cluster.engine
   engine_version               = aws_rds_cluster.cluster.engine_version
   db_subnet_group_name         = aws_db_subnet_group.cluster.name
   db_parameter_group_name      = aws_db_parameter_group.db.name
   performance_insights_enabled = var.performance_insights_enabled
-  promotion_tier               = 0
+}
+
+resource "aws_rds_cluster_instance" "reader" {
+  count = var.reader_instance_count
+
+  # Any promotion tier above 1 is a reader, and cannot become a writer.
+  # If the cluster comes up with a reader instance as the writer, initiate a failover.
+  promotion_tier               = 2
+  cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
+  identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
+  instance_class               = var.reader_engine_mode == "provisioned" ? var.writer_instance_class : var.reader_engine_mode
+  engine                       = aws_rds_cluster.cluster.engine
+  engine_version               = aws_rds_cluster.cluster.engine_version
+  db_subnet_group_name         = aws_db_subnet_group.cluster.name
+  db_parameter_group_name      = aws_db_parameter_group.db.name
+  performance_insights_enabled = var.performance_insights_enabled
 }
 
 resource "aws_db_parameter_group" "db" {
