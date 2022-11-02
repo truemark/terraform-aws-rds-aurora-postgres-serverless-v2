@@ -163,6 +163,7 @@ variable "vpc_id" {
 variable "writer_instance_class" {
   description = "Instance class of a provisioned cluster writer. This parameter is required if cluster_engine_mode is set to provisioned."
   type        = string
+  default     = "db.t3.medium"
 }
 
 variable "writer_instance_count" {
