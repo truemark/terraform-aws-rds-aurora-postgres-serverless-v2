@@ -60,6 +60,8 @@ variable "master_username" {
 
 variable "max_capacity" {
   description = "The maxiumum capacity for an Aurora DB cluster in serverless DB engine mode. Must be greater than or equal to minimum capacity"
+  type        = number
+  default     = 4
 }
 
 variable "min_capacity" {
