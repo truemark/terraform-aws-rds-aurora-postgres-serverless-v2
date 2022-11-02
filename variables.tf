@@ -73,7 +73,7 @@ variable "min_capacity" {
 variable "performance_insights_enabled" {
   description = "Switch to turn on performance insights."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "performance_insights_retention_period" {
