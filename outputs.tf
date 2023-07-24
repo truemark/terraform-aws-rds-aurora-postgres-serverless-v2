@@ -10,7 +10,7 @@ output "cluster_identifier" {
 
 output "cluster_members" {
   description = "List of RDS instasnces that are part of this cluster."
-  value       = aws_rds_cluster.cluster.cluster_members
+  value       = [aws_rds_cluster.cluster.cluster_members]
 }
 
 output "endpoint" {

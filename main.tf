@@ -43,6 +43,8 @@ resource "aws_rds_cluster_instance" "writer" {
   db_subnet_group_name         = aws_db_subnet_group.cluster.name
   db_parameter_group_name      = aws_db_parameter_group.db.name
   performance_insights_enabled = var.performance_insights_enabled
+  performance_insights_kms_key_id = data.aws_kms_key.db.arn
+  depends_on = [ aws_rds_cluster.cluster ]
 }
 
 resource "aws_rds_cluster_instance" "reader" {
@@ -59,6 +61,8 @@ resource "aws_rds_cluster_instance" "reader" {
   db_subnet_group_name         = aws_db_subnet_group.cluster.name
   db_parameter_group_name      = aws_db_parameter_group.db.name
   performance_insights_enabled = var.performance_insights_enabled
+  performance_insights_kms_key_id = data.aws_kms_key.db.arn
+  depends_on = [ aws_rds_cluster.cluster ]
 }
 
 resource "aws_db_parameter_group" "db" {

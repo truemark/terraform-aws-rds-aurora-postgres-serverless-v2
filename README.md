@@ -31,3 +31,5 @@ This repo generates an [Aurora Serverless v2](https://docs.aws.amazon.com/Amazon
 - vpc_id
 - writer_instance_class
 - writer_instance_count
+
+Note: There is only one default database option group for Aurora Postgres Serverless V2. It is not possible to create a separate, specific database option group for this engine. 
