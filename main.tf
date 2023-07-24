@@ -12,6 +12,7 @@ resource "aws_rds_cluster" "cluster" {
   cluster_identifier               = var.cluster_identifier
   engine                           = data.aws_rds_engine_version.postgresql.engine
   engine_mode                      = var.cluster_engine_mode
+  engine_version                   = var.postgres_engine_version
   database_name                    = var.cluster_identifier
   deletion_protection              = var.deletion_protection
   kms_key_id                       = data.aws_kms_key.db.arn
