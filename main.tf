@@ -10,6 +10,7 @@ data "aws_rds_engine_version" "postgresql" {
 resource "aws_rds_cluster" "cluster" {
   skip_final_snapshot              = true
   cluster_identifier               = var.cluster_identifier
+  enabled_cloudwatch_logs_exports  = ["postgresql"]
   engine                           = data.aws_rds_engine_version.postgresql.engine
   engine_mode                      = var.cluster_engine_mode
   engine_version                   = var.postgres_engine_version
