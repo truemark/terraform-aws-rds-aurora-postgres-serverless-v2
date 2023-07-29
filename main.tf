@@ -10,8 +10,10 @@ data "aws_rds_engine_version" "postgresql" {
 resource "aws_rds_cluster" "cluster" {
   skip_final_snapshot              = true
   cluster_identifier               = var.cluster_identifier
+  enabled_cloudwatch_logs_exports  = ["postgresql"]
   engine                           = data.aws_rds_engine_version.postgresql.engine
   engine_mode                      = var.cluster_engine_mode
+  engine_version                   = var.postgres_engine_version
   database_name                    = var.cluster_identifier
   deletion_protection              = var.deletion_protection
   kms_key_id                       = data.aws_kms_key.db.arn
@@ -33,15 +35,17 @@ resource "aws_rds_cluster_instance" "writer" {
   count = var.writer_instance_count
 
   # Setting promotion tier to 0 makes the instance eligible to become a writer.
-  promotion_tier               = 0
-  cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
-  identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
-  instance_class               = var.cluster_engine_mode == "provisioned" ? var.writer_instance_class : var.cluster_engine_mode
-  engine                       = aws_rds_cluster.cluster.engine
-  engine_version               = aws_rds_cluster.cluster.engine_version
-  db_subnet_group_name         = aws_db_subnet_group.cluster.name
-  db_parameter_group_name      = aws_db_parameter_group.db.name
-  performance_insights_enabled = var.performance_insights_enabled
+  promotion_tier                  = 0
+  cluster_identifier              = aws_rds_cluster.cluster.cluster_identifier
+  identifier_prefix               = "${aws_rds_cluster.cluster.cluster_identifier}-"
+  instance_class                  = var.cluster_engine_mode == "provisioned" ? var.writer_instance_class : var.cluster_engine_mode
+  engine                          = aws_rds_cluster.cluster.engine
+  engine_version                  = aws_rds_cluster.cluster.engine_version
+  db_subnet_group_name            = aws_db_subnet_group.cluster.name
+  db_parameter_group_name         = aws_db_parameter_group.db.name
+  performance_insights_enabled    = var.performance_insights_enabled
+  performance_insights_kms_key_id = data.aws_kms_key.db.arn
+  depends_on                      = [aws_rds_cluster.cluster]
 }
 
 resource "aws_rds_cluster_instance" "reader" {
@@ -49,15 +53,17 @@ resource "aws_rds_cluster_instance" "reader" {
 
   # Any promotion tier above 1 is a reader, and cannot become a writer.
   # If the cluster comes up with a reader instance as the writer, initiate a failover.
-  promotion_tier               = 2
-  cluster_identifier           = aws_rds_cluster.cluster.cluster_identifier
-  identifier_prefix            = "${aws_rds_cluster.cluster.cluster_identifier}-"
-  instance_class               = var.reader_engine_mode == "provisioned" ? var.writer_instance_class : var.reader_engine_mode
-  engine                       = aws_rds_cluster.cluster.engine
-  engine_version               = aws_rds_cluster.cluster.engine_version
-  db_subnet_group_name         = aws_db_subnet_group.cluster.name
-  db_parameter_group_name      = aws_db_parameter_group.db.name
-  performance_insights_enabled = var.performance_insights_enabled
+  promotion_tier                  = 2
+  cluster_identifier              = aws_rds_cluster.cluster.cluster_identifier
+  identifier_prefix               = "${aws_rds_cluster.cluster.cluster_identifier}-"
+  instance_class                  = var.reader_engine_mode == "provisioned" ? var.writer_instance_class : var.reader_engine_mode
+  engine                          = aws_rds_cluster.cluster.engine
+  engine_version                  = aws_rds_cluster.cluster.engine_version
+  db_subnet_group_name            = aws_db_subnet_group.cluster.name
+  db_parameter_group_name         = aws_db_parameter_group.db.name
+  performance_insights_enabled    = var.performance_insights_enabled
+  performance_insights_kms_key_id = data.aws_kms_key.db.arn
+  depends_on                      = [aws_rds_cluster.cluster]
 }
 
 resource "aws_db_parameter_group" "db" {
