@@ -1,3 +1,5 @@
+## **⚠ NOTICE**: This project is deprecated has been replaced by [terraform-aws-database](https://github.com/truemark/terraform-aws-database). Please discontinue use of this module.
+
 # terraform-aws-rds-aurora-postgres-serverless-v2
 
 This repo generates an [Aurora Serverless v2](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html) postgres cluster. The following parameters are supported:
